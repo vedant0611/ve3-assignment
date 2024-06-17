@@ -1,70 +1,70 @@
 import pandas as pd
+import matplotlib.pyplot as plt
+import base64
 from django.shortcuts import render
 from django.conf import settings
 import os
+from io import BytesIO
 
 def csvupload(request):
     if request.method == 'GET':
-        # Render the initial upload form page
         return render(request, "base/csvupload.html")
     
     elif request.method == 'POST':
-        # Handle POST request after file upload
         print('POST request received')
         print('FILES:', request.FILES)
         
-        # Fetch the uploaded file
-        file = request.FILES.get('diagnosegrapes')
+        file = request.FILES.get('file')
         if not file:
             return render(request, "base/csvupload.html", {'error': 'No file selected or file key mismatch'})
 
-        # Define the upload directory inside the base app
         upload_dir = os.path.join(settings.BASE_DIR, 'base', 'upload')
-
-        # Ensure the upload directory exists; create if not
         if not os.path.exists(upload_dir):
             os.makedirs(upload_dir)
-
-        # Construct the file path to save the uploaded file
+        
         file_path = os.path.join(upload_dir, file.name)
-
-        # Write the uploaded file to disk
         with open(file_path, 'wb+') as destination:
             for chunk in file.chunks():
                 destination.write(chunk)
 
         try:
-            # Data processing with pandas
-            # Read the uploaded CSV file into a pandas DataFrame
             df = pd.read_csv(file_path)
+            first_few_rows = df.head().to_html()
 
-            # Perform basic data analysis tasks
-            # Displaying the first few rows of the data
-            first_few_rows = df.head()
-            print('First Few Rows:')
-            print(first_few_rows)
+            summary_stats = df.describe().to_html()
 
-            # Calculating summary statistics (mean, median, standard deviation)
-            summary_stats = df.describe()
-            print('Summary Statistics:')
-            print(summary_stats)
+            missing_values = df.isnull().sum().to_frame(name='Missing Values').to_html()
 
-            # Identifying and handling missing values
-            missing_values = df.isnull().sum()
-            print('Missing Values:')
-            print(missing_values)
+            numerical_columns = df.select_dtypes(include=['float64', 'int64']).columns
+            plot_paths = []
 
-            # Prepare data to pass to the template
+            for col in numerical_columns:
+                plt.figure(figsize=(8, 6))
+                plt.hist(df[col], bins=20, edgecolor='black', alpha=0.7)
+                plt.xlabel(col)
+                plt.ylabel('Frequency')
+                plt.title(f'Histogram of {col}')
+                
+                buffer = BytesIO()
+                plt.savefig(buffer, format='png')
+                buffer.seek(0)
+                plot_data = buffer.getvalue()
+                buffer.close()
+                
+                plot_base64 = base64.b64encode(plot_data).decode('utf-8')
+                plot_paths.append(plot_base64)
+
+                plt.close()
+
             context = {
-                'file_url': 'base/upload/' + file.name,  # Path to the uploaded file
-                'first_few_rows': first_few_rows.to_html(),  # Convert DataFrame to HTML for display
-                'summary_stats': summary_stats.to_html(),    # Convert DataFrame to HTML for display
-                'missing_values': missing_values.to_html()   # Convert Series to HTML for display
+                'file_name': file.name,
+                'first_few_rows': first_few_rows,
+                'summary_stats': summary_stats,
+                'missing_values': missing_values,
+                'plot_paths': plot_paths
             }
 
-            # Render the template with the data analysis results
             return render(request, "base/csvupload.html", context)
 
         except Exception as e:
-            # Handle any exceptions that occur during data processing
             return render(request, "base/csvupload.html", {'error': f'Error processing file: {str(e)}'})

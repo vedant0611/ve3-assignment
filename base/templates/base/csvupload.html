@@ -5,33 +5,121 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CSV UPLOAD</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Poppins', sans-serif;
+      background: #f2f2f2;
+    }
+    .wrapper {
+      max-width: 800px;
+      padding: 30px;
+      background: #fff;
+      margin: 50px auto;
+      border-radius: 10px;
+      box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+    }
+    header {
+      font-size: 22px;
+      font-weight: 600;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .button {
+      text-align: center;
+      margin-top: 20px;
+    }
+    .button input {
+      background: #5CB85C;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      color: #fff;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .details {
+      font-size: 1.4rem;
+      font-weight: 500;
+    }
+    .results {
+      margin-top: 20px;
+    }
+    .results h2 {
+      margin-bottom: 10px;
+    }
+    .results img {
+      max-width: 100%;
+      margin-bottom: 20px;
+    }
+    .table {
+      width: 100%;
+      margin-bottom: 1rem;
+      color: #212529;
+    }
+    .table th,
+    .table td {
+      padding: 0.75rem;
+      vertical-align: top;
+      border-top: 1px solid #dee2e6;
+    }
+    .table thead th {
+      vertical-align: bottom;
+      border-bottom: 2px solid #dee2e6;
+    }
+    .table tbody + tbody {
+      border-top: 2px solid #dee2e6;
+    }
+    .table .table {
+      background-color: #fff;
+    }
+  </style>
 </head>
-<body style="margin: 0; padding: 0; font-family: 'Poppins', sans-serif; background: #f2f2f2;">
-  <div class="wrapper" style="max-width: 500px; padding: 30px; background: #fff; margin: 50px auto; border-radius: 10px; box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);">
-    <header style="font-size: 22px; font-weight: 600; text-align: center; margin-bottom: 30px;">Upload Your CSV File</header>
-    <form target="_blank" action="/csvupload" method="POST" name="file" enctype="multipart/form-data">
+<body>
+  <div class="wrapper">
+    <header>Upload Your CSV File</header>
+    <form action="{% url 'csvupload' %}" method="POST" enctype="multipart/form-data">
       {% csrf_token %}
       <input class="file-input" type="file" name="file" hidden>
       
-      <div class="button" style="text-align: center;">
+      <div class="button" onclick="document.querySelector('.file-input').click();">
         <i class="fas fa-cloud-upload-alt" style="font-size: 30px; color: #333;"></i>
         <p style="font-size: 16px; color: #333; margin-top: 10px;">Browse File to Upload</p>
-        <br><br><br><br><br><br>
-      </div>
-
-      <div style="margin-top: 20px; text-align: center;">
-        <span class="details" style="font-size: 1.4rem; font-weight: 500;">Upload Image</span>
-        <br><br>
-        <input type="file" placeholder="" name="diagnosegrapes" style="width: calc(100% - 20px); padding: 10px; border: 1px solid #ccc; border-radius: 5px; outline: none;">
       </div>
 
       <div class="button" style="margin-top: 20px; text-align: center;">
-        <input type="submit" value="Diagnose" style="background: #5CB85C; border: none; padding: 10px 20px; border-radius: 5px; color: #fff; cursor: pointer; font-size: 16px;">
+        <input type="submit" value="Submit">
       </div>
     </form>
-    <section class="progress-area" style="margin-top: 20px;"></section>
-    <section class="uploaded-area" style="margin-top: 20px;"></section>
+
+    {% if error %}
+      <p style="color: red;">{{ error }}</p>
+    {% endif %}
+
+    <div class="results">
+      {% if first_few_rows %}
+        <h2>First Few Rows:</h2>
+        <div>{{ first_few_rows|safe }}</div>
+      {% endif %}
+
+      {% if summary_stats %}
+        <h2>Summary Statistics:</h2>
+        <div>{{ summary_stats|safe }}</div>
+      {% endif %}
+
+      {% if missing_values %}
+        <h2>Missing Values:</h2>
+        <div>{{ missing_values|safe }}</div>
+      {% endif %}
+
+      {% if plot_paths %}
+        <h2>Histograms:</h2>
+        {% for plot in plot_paths %}
+          <img src="data:image/png;base64,{{ plot }}" alt="Histogram">
+        {% endfor %}
+      {% endif %}
+    </div>
   </div>
-  <script src="../static/csvupload.js"></script>
 </body>
 </html>
