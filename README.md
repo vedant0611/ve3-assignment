@@ -25,8 +25,8 @@ This Django web application allows users to upload CSV files, perform data analy
 
 1. **Clone the Repository**:
     ```bash
-    git clone https://github.com/yourusername/django-csv-upload-analysis.git
-    cd django-csv-upload-analysis
+    git clone https://github.com/vedant0611/ve3-assignment/tree/main
+    cd application
     ```
 
 2. **Create a Virtual Environment**:
@@ -77,7 +77,7 @@ This Django web application allows users to upload CSV files, perform data analy
 
 ## Sample CSV File
 
-A sample CSV file `sample.csv` is included in the repository for testing purposes.
+A sample CSV file `Placement_Data_Full_Class (1).csv` is included in the repository for testing purposes.
 
 ## Project Structure
 
