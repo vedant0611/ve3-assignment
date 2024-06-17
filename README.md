@@ -100,10 +100,6 @@ django-csv-upload-analysis/
 │   ├── templates/
 │   │   └── base/
 │   │       └── csvupload.html
-│   ├── static/
-│       └── css/
-│           └── style.css
-├── media/
 │   ├── upload/
 │       └── (uploaded files will be stored here)
 ├── manage.py
